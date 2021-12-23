@@ -3,12 +3,13 @@ const fs = require('fs/promises');
 const bodyParser = require('body-parser');
 const { MongoClient } = require('mongodb');
 const config = require('./config.json');
+require ('dotenv').config();
 
 //Create the mongo client to use
 const client = new MongoClient(config.finalUrl);
 
 const app = express();
-const port = 4000;
+const port = process.env.PORT;
 
 app.use(express.static('public'));
 app.use(bodyParser.json());
