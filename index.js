@@ -28,10 +28,10 @@ app.get('/comments', async (req, res) =>{
 
         //retrieve the comments collection data
         const colli = client.db('Web2Werkstuk').collection('Comments');
-        const bgs = await colli.find({}).toArray();
+        const comments = await colli.find({}).toArray();
 
         //Send back the data with the response
-        res.status(200).send(bgs);
+        res.status(200).send(comments);
     }catch(error){
         console.log(error)
         res.status(500).send({
@@ -53,7 +53,7 @@ app.get('/comments', async (req,res) => {
         //retrieve the comments collection data
         const colli = client.db('Web2Werkstuk').collection('Comments');
 
-        //only look for a bg with this ID
+        //only look for a comments with this ID
         const query = { cmtid: req.query.id };
 
         const comments = await colli.findOne(query);
@@ -212,10 +212,10 @@ app.get('/universities', async (req, res) =>{
 
         //retrieve the universities collection data
         const colli = client.db('Web2Werkstuk').collection('Universities');
-        const bgs = await colli.find({}).toArray();
+        const comments = await colli.find({}).toArray();
 
         //Send back the data with the response
-        res.status(200).send(bgs);
+        res.status(200).send(comments);
     }catch(error){
         console.log(error)
         res.status(500).send({
@@ -237,7 +237,7 @@ app.get('/universities', async (req,res) => {
         //retrieve the university collection data
         const colli = client.db('Web2Werkstuk').collection('Universities');
 
-        //only look for a bg with this ID
+        //only look for a comments with this ID
         const query = { univid: req.query.id };
 
         const university = await colli.findOne(query);
