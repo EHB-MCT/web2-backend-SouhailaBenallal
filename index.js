@@ -19,11 +19,7 @@ const port = process.env.PORT || 1332;
 app.use(express.static('public'));
 app.use(bodyParser.json());
 app.use(cors());
-
-//Root route
-app.get('/', (req, res) => {
-    res.status(300).redirect('/index.html');
-});
+app.use(verifyToken);
 
 // serve static files
 app.get('/', (req, res) => {
