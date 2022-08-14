@@ -7,7 +7,7 @@ require('dotenv').config();
 const cors = require('cors');
 const bcrypt = require('bcryptjs/dist/bcrypt');
 const jwt = require('jsonwebtoken');
-
+const path = require('path');
 // Create the mongo client  
 const client = new MongoClient(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true });
 
@@ -25,6 +25,12 @@ app.get('/', (req, res) => {
     res.status(300).redirect('/index.html');
 });
 
+// serve static files
+app.get('/', (req, res) => {
+    res.sendFile(path.join(
+        __dirname, 'public', 'index.html'
+    ));
+});
 
 // DONE - Return all universities from the database
 app.get('/universities', async (req, res) => {
