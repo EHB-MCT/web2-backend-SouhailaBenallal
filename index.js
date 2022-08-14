@@ -196,6 +196,184 @@ app.delete('/universities/:id', async (req, res) => {
         }
 } );
 
+// DONE - Return all events from the database
+app.get('/events', async (req, res) => {
+    try{
+        // conncect to the db
+        await client.connect();
+        // retrieve the events collection
+        const collection = client.db('BEL-universities').collection('events');
+        const events = await collection.find({}).toArray();
+        if(events){
+            res.status(200).send(events);
+            return;
+        }else{
+            res.status(404).send('Events could not be found');
+            return;
+        }
+    }catch(error){
+        console.log(error);
+        res.status(500).send({
+            error: 'An error has occured',
+            value: error
+        });
+        }finally{
+            client.close();
+        }
+} );
+
+// DONE - Return a single event from the database
+app.get('/events/:id', async (req, res) => {
+    // Check for id in url
+    if(!req.params.id){
+        res.status(400).send('Please provide an id');
+        return;
+    }
+    try{
+        // conncect to the db
+        await client.connect();
+        // retrieve the events collection
+        const collection = client.db('BEL-universities').collection('events');
+        const event = await collection.findOne({_id: ObjectId(req.params.id)});
+        if(event){
+            res.status(200).send(event);
+            return;
+        }else{
+            res.status(404).send('Event could not be found');
+            return;
+        }
+    }catch(error){
+        console.log(error);
+        res.status(500).send({
+            error: 'An error has occured',
+            value: error
+        });
+        }finally{
+            client.close();
+        }
+} );
+
+
+
+// DONE - Add a new events to the database
+app.post('/events', async (req, res) => {
+    if(!req.body.name || !req.body.date || !req.body.description || !req.body.image || !req.body.location || !req.body.website || !req.body.liked){
+        res.status(400).send('Please provide a name, date, description, image, location and website');
+        return;
+    }
+    try{
+        // conncect to the db
+        await client.connect();
+        // retrieve the events collection
+        const collection = client.db('BEL-events').collection('events');
+
+        // Validation for double events
+        const event = await collection.findOne({name: req.body.name, date: req.body.date, description: req.body.description, image: req.body.image, location: req.body.location, website: req.body.website, liked: req.body.liked});
+        if(event){
+            res.status(400).send('Event already exists');
+            return;
+        }
+        // Create the new event
+        let newEvent = {
+            name: req.body.name,
+            date: req.body.date,
+            description: req.body.description,
+            image: req.body.image,
+            location: req.body.location,
+            website: req.body.website,
+            liked: req.body.liked
+        }
+
+        // Add into the database
+        let result = await collection.insertOne(newEvent);
+        // Send back the data with the response
+        res.status(201).json(newEvent);
+        return;
+
+    }catch(error){
+        console.log(error);
+        res.status(500).send({
+            error: 'An error has occured',
+            value: error
+        });
+        }finally{
+            client.close();
+        }
+} );
+
+// DONE - Update a event in the database
+app.put('/events/:id', async (req, res) => {
+    //Check for bdody fields
+    if(!req.body.name || !req.body.date || !req.body.description || !req.body.image || !req.body.location || !req.body.website || !req.body.liked){
+        res.status(400).send('Please provide a name, date, description, image, location and website');
+        return;
+    }
+    // Check for id in url
+    if(!req.params.id){
+        res.status(400).send('Please provide an id');
+        return;
+    }
+    try{
+        // conncect to the db
+        await client.connect();
+        // retrieve the events collection
+        const collection = client.db('BEL-events').collection('events');
+        // Validation for double events
+        const event = await collection.findOne({name: req.body.name, date: req.body.date, description: req.body.description, image: req.body.image, location: req.body.location, website: req.body.website, liked: req.body.liked});
+        if(event){
+            res.status(400).send('Event already exists');
+            return;
+        }
+        // Update the event
+        let result = await collection.updateOne({_id: ObjectId(req.params.id)}, {$set: {name: req.body.name, date: req.body.date, description: req.body.description, image: req.body.image, location: req.body.location, website: req.body.website, liked: req.body.liked}});
+        // Send back the data with the response
+        res.status(200).send(result);
+        return;
+    }
+    catch(error){
+        console.log(error);
+        res.status(500).send({
+            error: 'An error has occured',
+            value: error
+        });
+        }finally{
+            client.close();
+        }
+} );
+
+// DONE - Delete a event from the database
+app.delete('/events/:id', async (req, res) => {
+    // Check for id in url
+    if(!req.params.id){
+        res.status(400).send('Please provide an id');
+        return;
+    }
+    try{
+        // conncect to the db
+        await client.connect();
+        // retrieve the events collection
+        const collection = client.db('BEL-events').collection('events');
+        // Delete the event
+        let result = await collection.deleteOne({_id: ObjectId(req.params.id)});
+        // Send back the data with the response
+        res.status(200).send(result);
+        return;
+    }
+    catch(error){
+        console.log(error);
+        res.status(500).send({
+            error: 'An error has occured',
+            value: error
+        });
+        }finally{
+            client.close();
+        }
+} );
+
+
+
+
+
 // DONE - Wishlist with all my favourite universities from the database
 app.get('/wishlist', async (req, res) => {
     try{

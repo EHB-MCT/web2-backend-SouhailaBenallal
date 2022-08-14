@@ -91,6 +91,20 @@ npm i nodemon
  DELETE /delete University - delete the University in local file/
 
 
+### - Events
+ GET / - Events/
+
+ GET /Events - Get all Events/
+
+ GET /Events?id=1234 - Get the Events with ID 1234/
+ 
+ POST /save Events - saves the Events in local file/
+ 
+ PUT /Events?id=1234 - update the Events with ID 1234/
+ 
+ DELETE /delete Events - delete the Events in local file/
+
+
 ### - Wishlist
  GET / - Wishlist/
 
