@@ -12,46 +12,54 @@ Use the package manager [npm](https://docs.npmjs.com/c/v8/commands/npm-init) to 
 npm install
 ```
 ## Used Packages
-This module enables storing of passwords as hashed passwords instead of plaintext. [bcryptjs](https://www.npmjs.com/package/bcryptjs)
+This module enables storing of passwords as hashed passwords instead of plaintext. 
+[Bcryptjs](https://www.npmjs.com/package/bcryptjs)
 ```bash
 npm i bcryptjs
 ```
 
 
-The bodyParser object exposes various factories to create middlewares. [body-parser](https://www.npmjs.com/package/body-parser)
+The bodyParser object exposes various factories to create middlewares. 
+[Body-parser](https://www.npmjs.com/package/body-parser)
 ```bash
 npm i body-parser
 ```
 
 
-CORS is a node.js package for providing a Connect/Express middleware that can be used to enable CORS with various options. [cors](https://www.npmjs.com/package/cors)
+CORS is a node.js package for providing a Connect/Express middleware that can be used to enable CORS with various options. 
+[Cors](https://www.npmjs.com/package/cors)
 ```bash
 npm i cors
 ```
 
-Dotenv is a zero-dependency module that loads environment variables from a .env file into process.env. Storing configuration in the environment separate from code is based on The Twelve-Factor App methodology. [dotenv](https://www.npmjs.com/package/dotenv)
+Dotenv is a zero-dependency module that loads environment variables from a .env file into process.env. Storing configuration in the environment separate from code is based on The Twelve-Factor App methodology. 
+[Dotenv](https://www.npmjs.com/package/dotenv)
 ```bash
 npm i dotenv
 ```
 
-Express is a node js web application framework that provides broad features for building web and mobile applications. [express](https://www.npmjs.com/package/express)
+Express is a node js web application framework that provides broad features for building web and mobile applications. 
+[Express](https://www.npmjs.com/package/express)
 ```bash
 npm i express
 ```
 
-JWT, or JSON Web Token, is an open standard used to share security information between two parties — a client and a server. [jsonwebtoken](https://www.npmjs.com/package/jsonwebtoken)
+JWT, or JSON Web Token, is an open standard used to share security information between two parties — a client and a server. 
+[Jsonwebtoken](https://www.npmjs.com/package/jsonwebtoken)
 ```bash
 npm i jsonwebtoken
 ```
 
 
-The official MongoDB driver for Node.js. [mongodb](https://www.npmjs.com/package/mongodb)
+The official MongoDB driver for Node.js. 
+[Mongodb](https://www.npmjs.com/package/mongodb)
 ```bash
 npm i mongodb
 ```
 
 
-nodemon is a tool that helps develop Node.js based applications by automatically restarting the node application when file changes in the directory are detected. [nodemon](https://www.npmjs.com/package/nodemon)
+nodemon is a tool that helps develop Node.js based applications by automatically restarting the node application when file changes in the directory are detected. 
+[Nodemon](https://www.npmjs.com/package/nodemon)
 ```bash
 npm i nodemon
 ```
