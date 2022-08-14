@@ -19,7 +19,6 @@ const port = process.env.PORT || 1332;
 app.use(express.static('public'));
 app.use(bodyParser.json());
 app.use(cors());
-app.use(verifyToken);
 
 // serve static files
 app.get('/', (req, res) => {
