@@ -4,35 +4,36 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Index</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="icon" type="image/png" href="images/logo.png">
+    <title>Document</title>
 </head>
 <body>
-    <h1>Web 2 - API - University api </h1>
-    <ul>
-        <li>GET / - Documentatie</li>
-        <li>GET /comments - Get all comments</li>
-        <li>GET /comments?id=1234 - Get the comments with ID 1234</li>
-        <li>POST /save comments - saves the comments in local file</li>
-        <li>PUT /comments?id=1234 - update the comments with ID 1234</li>
-        <li>DELETE /delete comments - delete the comments in local file</li>
-    </ul>
-
-    <ul>
-        <li>GET / - University</li>
-        <li>GET /University - Get all University</li>
-        <li>GET /University?id=1234 - Get the University with ID 1234</li>
-        <li>POST /save University - saves the University in local file</li>
-        <li>PUT /University?id=1234 - update the University with ID 1234</li>
-        <li>DELETE /delete University - delete the University in local file</li>
-    </ul>
-
-    <ul>
-        <li>GET / - Wishlist</li>
-        <li>GET /Wishlist?id=1234 - Get the wishlist with ID 1234</li>
-        <li>POST /save wishlist - saves the wishlist in local file</li>
-        <li>DELETE /delete wishlist - delete the wishlist in local file</li>
-    </ul>
-
+    <h1>Belguims University api</h1>
+    <hr>
+    <h2>All universities api</h2>
+    <ul><li>GET /universities - </li>
+    <li>GET /universities/:id - </li>
+    <li>POST /universities - </li>
+    <li>PUT /universities/:id - </li>
+    <li>DELETE /universities/:id - </li></ul>
+    <br>
+    <hr>
+    <h2>All comments api</h2>
+    <hr>
+    <ul><li>GET /comments - </li>
+    <li>GET /comments/:id - </li>
+    <li>POST /comments - </li>
+    <li>PUT /comments/:id - </li>
+    <li>DELETE /comments/:id - </li></ul>
+    <br>
+    <hr>
+    <h2>All users api</h2>
+    <hr>
+    <ul><li>GET /users - </li>
+    <li>GET /users/me (verifyToken) - </li>
+    <li>POST /login - </li>
+    <li>POST /register - </li>
+    <li>PUT /users/:id (verifyToken)- </li>
+    <li>DELETE /users/:id (verifyToken)- </li></ul>
 </body>
-</html>

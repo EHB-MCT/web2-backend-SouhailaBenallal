@@ -1,7 +1,9 @@
 # University Web
-I d ke to make a website where we can find all the universities in America.
-My website will be designed in a lucrative way to allow the young student to continue his studies and also to find the nearest university in his province.  
-My website will be addressed to all people who want to resume their studies. And that it is difft to find universities close to your home!
+I would like to make a website where you can find all the universities in Belgium.
+My site will be designed in a lucrative way to allow the young student to find the university that inspires him the most. 
+My site will be for all the people who want to resume their studies. And that it is difficult to find universities near your home!
+He could create his own account to keep all these universities "liked". 
+
 
 ## Installation
 Use the package manager [npm](https://docs.npmjs.com/c/v8/commands/npm-init) to install nodemes.
@@ -31,6 +33,14 @@ npm install
  POST /save Wishlist - saves the Wishlist in local file/
  DELETE /delete Wishlist - delete the Wishlist in local file/
 
+### GET / - Users
+ GET /users -
+ GET /users/me (verifyToken) - 
+ POST /login -
+ POST /register -
+ PUT /users/:id (verifyToken)-
+ DELETE /users/:id (verifyToken)-
+
 
 ## Sources WEB
 https://docs.npmjs.com/cli/v8/commands/npm-init
@@ -43,6 +53,8 @@ https://www.npmjs.com/package/eslint
 https://jasonwatmore.com/post/2018/06/14/nodejs-mongodb-simple-api-for-authentication-registration-and-user-management
 https://www.youtube.com/watch?v=CyTWPr_WwdI
 https://morioh.com/p/956f56eb74f1
+https://medium.com/geekculture/building-an-api-using-express-js-and-mongodb-wishlist-api-application-1aa3215fde6d
+https://medium.com/zero-equals-false/building-a-restful-crud-api-with-node-js-jwt-bcrypt-express-and-mongodb-4e1fb20b7f3d
 
 ## Sources School
 Mike Derycke (WEB2)

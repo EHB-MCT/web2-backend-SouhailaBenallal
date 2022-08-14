@@ -1,499 +1,644 @@
-const express = require('express');
-const fs = require('fs/promises');
-const bodyParser = require('body-parser');
-const { MongoClient } = require('mongodb');
-const config = require('./config.json');
-require ('dotenv').config();
+// Rest Api express, bodyParseer, MongoClient, dotenv, cors and bcrypt
 
-//Create the mongo client to use
-const client = new MongoClient(config.finalUrl);
+const express = require('express');
+const bodyParser = require('body-parser');
+const { MongoClient, ObjectId } = require('mongodb');
+require('dotenv').config();
+const cors = require('cors');
+const bcrypt = require('bcryptjs/dist/bcrypt');
+const jwt = require('jsonwebtoken');
+
+// Create the mongo client  
+const client = new MongoClient(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true });
 
 const app = express();
-const port = process.env.PORT;
+
+// Let heroku do its thing with the port
+const port = process.env.PORT || 1332;
 
 app.use(express.static('public'));
 app.use(bodyParser.json());
+app.use(cors());
 
 //Root route
 app.get('/', (req, res) => {
     res.status(300).redirect('/index.html');
 });
 
-// Return all comments from the database
-app.get('/comments', async (req, res) =>{
 
+// DONE - Return all universities from the database
+app.get('/universities', async (req, res) => {
     try{
-        //connect to the db
+        // conncect to the db
         await client.connect();
-
-        //retrieve the comments collection data
-        const colli = client.db('Web2Werkstuk').collection('Comments');
-        const comments = await colli.find({}).toArray();
-
-        //Send back the data with the response
-        res.status(200).send(comments);
-    }catch(error){
-        console.log(error)
-        res.status(500).send({
-            error: 'Something went wrong',
-            value: error
-        });
-    }finally {
-        await client.close();
+        // retrieve the universities collection
+        const collection = client.db('BEL-universities').collection('universities');
+        const uni = await collection.find({}).toArray();
+        // Send back the data with the response 
+        res.status(200).send(uni);
     }
-});
-
-// /comments?id=1234
-app.get('/comments', async (req,res) => {
-    //id is located in the query: req.query.id
-    try{
-        //connect to the db
-        await client.connect();
-
-        //retrieve the comments collection data
-        const colli = client.db('Web2Werkstuk').collection('Comments');
-
-        //only look for a comments with this ID
-        const query = { cmtid: req.query.id };
-
-        const comments = await colli.findOne(query);
-
-        if(comments){
-            //Send back the file
-            res.status(200).send(comments);
-            return;
-        }else{
-            res.status(400).send('Comments could not be found with id: ' + req.query.id);
-        }
-      
-    }catch(error){
+    catch(error){
         console.log(error);
         res.status(500).send({
-            error: 'Something went wrong',
+            error: 'An error has occured',
             value: error
         });
-    }finally {
-        await client.close();
-    }
-});
-
-
-// save a comments
-app.post('/saveComments', async (req, res) => {
-
-    if(!req.body.cmtid || !req.body.name || !req.body.comments){
-        res.status(400).send('Bad request: missing id, name or comments');
-        return;
-    }
-
-    try{
-        //connect to the db
-        await client.connect();
-
-        //retrieve the comments collection data
-        const colli = client.db('Web2Werkstuk').collection('Comments');
-
-        // Validation for double comments
-        const cmnts = await colli.findOne({cmtid: req.body.cmtid});
-        if(cmnts){
-            res.status(400).send('Bad request: Comments already exists with cmtid ' + req.body.cmtid);
-            return;
-        } 
-        // Create the new Comments object
-        let newComment = {
-            cmtid: req.body.cmtid,
-            name: req.body.name,
-            comments: req.body.comments
         }
+    finally{
+        client.close();
+    }
+} );
+
+// DONE - Return one universitie from the database
+app.get('/universities/:id', async (req, res) => {
+    try{
+        // conncect to the db
+        await client.connect();
+        // retrieve the universities collection
+        const collection = client.db('BEL-universities').collection('universities');
+        const uni = await collection.findOne({_id: ObjectId(req.params.id)});
         
-        // Insert into the database
-        let insertResult = await colli.insertOne(newComment);
-
-        //Send back successmessage
-        res.status(201).send(`Comments succesfully saved with id ${req.body.cmtid}`);
-        return;
-    }catch(error){
-        console.log(error);
-        res.status(500).send({
-            error: 'Something went wrong',
-            value: error
-        });
-    }finally {
-        await client.close();
-    }
-});
-
-// delete a comments
-app.delete('/comments/:id', async (req, res) => {
-    try{
-        //connect to the db
-        await client.connect();
-
-        //retrieve the comments collection data
-        const colli = client.db('Web2Werkstuk').collection('Comments');
-
-        const query = {
-            _id: ObjectId(req.params.id)
-        };
-
-        await collection.deleteOne(query)
-        res.status(200).json({
-            succes: 'Succesfully deleted!'
-        });
-
-    }catch(error){
-        console.log(error)
-        res.status(500).send({
-            error: 'Something went wrong',
-            value: error
-        });
-    }finally {
-        await client.close();
-    }
-});
-
-
-// update a comments
-app.put('/comments/:id', async (req, res) => {
-
-    if(!req.body.cmtid || !req.body.name || !req.body.comments){
-        res.status(400).send('Bad request: missing id, name or comments');
-        return;
-    }
-
-    try{
-        //connect to the db
-        await client.connect();
-
-        //retrieve the comments collection data
-        const colli = client.db('Web2Werkstuk').collection('Comments');
-
-        const query = {
-            _id: ObjectId(req.params.id)
-        };
- 
-        // Create the new Comments object
-        let updateComment = {
-            $set:{
-            cmtid: req.body.cmtid,
-            name: req.body.name,
-            comments: req.body.comments
+        if(uni){
+            res.status(200).send(uni);
+            return
+        }else{
+            res.status(404).send('University could not be found with id:' + req.params.id);
             }
-        }
+        }catch(error){
+            console.log(error);
+            res.status(500).send({
+                error: 'An error has occured',
+                value: error
+            });
+            }finally{
+                client.close();
+            }
+} );
 
-        const updating = await collection.updateOne(query, updateComment)
-
-        if(updating){
-            res.status(201).send(`Comments succesfully saved with id ${req.body.cmtid}`);
-            return;
-        }else{
-            res.status(400).send(`Comments NO succesfully work with id ${req.body.cmtid}`);
-            return;
-        }
-    }catch(error){
-        console.log(error);
-        res.status(500).send({
-            error: 'Something went wrong',
-            value: error
-        });
-    }finally {
-        await client.close();
-    }
-    
-    
-});
-
-//Universities
-app.get('/universities', async (req, res) =>{
-
-    try{
-        //connect to the db
-        await client.connect();
-
-        //retrieve the universities collection data
-        const colli = client.db('Web2Werkstuk').collection('Universities');
-        const comments = await colli.find({}).toArray();
-
-        //Send back the data with the response
-        res.status(200).send(comments);
-    }catch(error){
-        console.log(error)
-        res.status(500).send({
-            error: 'Something went wrong',
-            value: error
-        });
-    }finally {
-        await client.close();
-    }
-});
-
-// /Universities?id=1234
-app.get('/universities', async (req,res) => {
-    //id is located in the query: req.query.id
-    try{
-        //connect to the db
-        await client.connect();
-
-        //retrieve the university collection data
-        const colli = client.db('Web2Werkstuk').collection('Universities');
-
-        //only look for a comments with this ID
-        const query = { univid: req.query.id };
-
-        const university = await colli.findOne(query);
-
-        if(university){
-            //Send back the file
-            res.status(200).send(university);
-            return;
-        }else{
-            res.status(400).send('University could not be found with id: ' + req.query.id);
-        }
-      
-    }catch(error){
-        console.log(error);
-        res.status(500).send({
-            error: 'Something went wrong',
-            value: error
-        });
-    }finally {
-        await client.close();
-    }
-});
-
-
-// save a universities
-app.post('/saveUniv', async (req, res) => {
-
-    if(!req.body.univid || !req.body.state-province || !req.body.country || !req.body.web_pages || !req.body.name || !req.body.alpha_two_code || !req.body.domains){
-        res.status(400).send('Bad request: missing id, name or universities');
+// DONE - Add a new university to the database
+app.post('/universities', async (req, res) => {
+    if(!req.body.name || !req.body.location || !req.body.website || !req.body.image || !req.body.description || !req.body.liked){
+        res.status(400).send('Please provide a name, location and website');
         return;
     }
-
     try{
-        //connect to the db
+        // conncect to the db
         await client.connect();
-
-        //retrieve the universities collection data
-        const colli = client.db('Web2Werkstuk').collection('Universities');
+        // retrieve the universities collection
+        const collection = client.db('BEL-universities').collection('universities');
 
         // Validation for double universities
-        const univ = await colli.findOne({univid: req.body.univid});
-        if(univ){
-            res.status(400).send('Bad request: universities already exists with univid ' + req.body.univid);
+        const uni = await collection.findOne({name: req.body.name, location: req.body.location, website: req.body.website, image: req.body.image, description: req.body.description, liked: req.body.liked});
+        if(uni){
+            res.status(400).send('University already exists');
             return;
-        } 
-        // Create the new Comments object
-        let newUniversities = {
-            univid: req.body.univid,
-            stateprovince: req.body.state-province,
-            country: req.body.country,
-            webpages: req.body.web_pages,
+        }
+
+        // Create the new university
+        let newUni = {
             name: req.body.name,
-            alpha2code: req.body.alpha_two_code,
-            domains: req.body.domains
+            location: req.body.location,
+            website: req.body.website,
+            image: req.body.image,
+            description: req.body.description,
+            liked: req.body.liked
         }
         
-        // Insert into the database
-        let insertResult = await colli.insertOne(newUniversities);
-
-        //Send back successmessage
-        res.status(201).send(`Comments succesfully saved with id ${req.body.univid}`);
+        // Insert the optional session field
+        if(req.body.session){
+            newUni.session = req.body.session;
+        }
+        // Add into the database
+        let result = await collection.insertOne(newUni);
+        // Send back the data with the response
+        res.status(201).json(newUni);
         return;
+        
     }catch(error){
         console.log(error);
         res.status(500).send({
-            error: 'Something went wrong',
+            error: 'An error has occured',
             value: error
         });
-    }finally {
-        await client.close();
-    }
-});
+        }finally{
+            client.close();
+        }
+} );
 
-// delete a university
-app.delete('/university/:id', async (req, res) => {
-    try{
-        //connect to the db
-        await client.connect();
-
-        //retrieve the comments collection data
-        const colli = client.db('Web2Werkstuk').collection('Universities');
-
-        const query = {
-            _id: ObjectId(req.params.id)
-        };
-
-        await collection.deleteOne(query)
-        res.status(200).json({
-            succes: 'Succesfully deleted!'
-        });
-
-    }catch(error){
-        console.log(error)
-        res.status(500).send({
-            error: 'Something went wrong',
-            value: error
-        });
-    }finally {
-        await client.close();
-    }
-});
-
-
-// update a university
-app.put('/university/:id', async (req, res) => {
-
-    if(!req.body.univid || !req.body.state-province || !req.body.country || !req.body.web_pages || !req.body.name || !req.body.alpha_two_code || !req.body.domains){
-        res.status(400).send('Bad request: missing id, name or university');
+// DONE - Update a university in the database
+app.put('/universities/:id', async (req, res) => {
+    //Check for bdody fields
+    if(!req.body.name || !req.body.location || !req.body.website || !req.body.image || !req.body.description || !req.body.liked){
+        res.status(400).send('Please provide a name, location and website');
         return;
     }
-
+    // Check for id in url
+    if(!req.params.id){
+        res.status(400).send('Please provide an id');
+        return;
+    }
     try{
-        //connect to the db
+        // conncect to the db
         await client.connect();
-
-        //retrieve the university collection data
-        const colli = client.db('Web2Werkstuk').collection('Universities');
-
-        const query = {
-            _id: ObjectId(req.params.id)
-        };
- 
-        // Create the new university object
-        let updateComment = {
-            $set:{
-            univid: req.body.univid,
-            stateprovince: req.body.state-province,
-            country: req.body.country,
-            webpages: req.body.web_pages,
-            name: req.body.name,
-            alpha2code: req.body.alpha_two_code,
-            domains: req.body.domains,
-            }
+        // retrieve the universities collection
+        const collection = client.db('BEL-universities').collection('universities');
+        // Validation for double universities
+        const uni = await collection.findOne({name: req.body.name, location: req.body.location, website: req.body.website, image: req.body.image, description: req.body.description, liked: req.body.liked});
+        if(uni){
+            res.status(400).send('University already exists');
+            return;
         }
+        // Update the university
+        let result = await collection.updateOne({_id: ObjectId(req.params.id)}, {$set: {name: req.body.name, location: req.body.location, website: req.body.website, image: req.body.image, description: req.body.description, liked: req.body.liked}});
+        // Send back the data with the response
+        res.status(200).send(result);
+        return;
+    }
+    catch(error){
+        console.log(error);
+        res.status(500).send({
+            error: 'An error has occured',
+            value: error
+        });
+        }finally{
+            client.close();
+        }
+} );
 
-        const updating = await collection.updateOne(query, updateComment)
 
-        if(updating){
-            res.status(201).send(`Comments succesfully saved with id ${req.body.univid}`);
+// DONE - Delete a university from the database
+app.delete('/universities/:id', async (req, res) => {
+    // Check for id in url
+    if(!req.params.id){
+        res.status(400).send('Please provide an id');
+        return;
+    }
+    try{
+        // conncect to the db
+        await client.connect();
+        // retrieve the universities collection
+        const collection = client.db('BEL-universities').collection('universities');
+        // Delete the university
+        let result = await collection.deleteOne({_id: ObjectId(req.params.id)});
+        // Send back the data with the response
+        res.status(200).send(result);
+        return;
+    }
+    catch(error){
+        console.log(error);
+        res.status(500).send({
+            error: 'An error has occured',
+            value: error
+        });
+        }finally{
+            client.close();
+        }
+} );
+
+// DONE - Wishlist with all my favourite universities from the database
+app.get('/wishlist', async (req, res) => {
+    try{
+        // conncect to the db
+        await client.connect();
+        // retrieve the universities collection
+        const collection = client.db('BEL-universities').collection('universities');
+        const wishlist = await collection.find({}).toArray();
+        if(wishlist){
+            res.status(200).send(wishlist);
             return;
         }else{
-            res.status(400).send(`Comments NO succesfully work with id ${req.body.univid}`);
+            res.status(404).send('Wishlist could not be found');
             return;
         }
     }catch(error){
         console.log(error);
         res.status(500).send({
-            error: 'Something went wrong',
+            error: 'An error has occured',
             value: error
         });
-    }finally {
-        await client.close();
-    }
-    
-    
-});
+        }finally{
+            client.close();
+        }
+} );
 
-
-//Wishlist
-app.post('/saveWishlist', async (req, res) => {
-
-    if(!req.body.univid){
-        res.status(400).send('Bad request: missing id, name or university');
+// DONE - Add a new university to the wishlist
+app.post('/wishlist', async (req, res) => {
+    if(!req.body.name || !req.body.location || !req.body.website || !req.body.image || !req.body.description || !req.body.liked){
+        res.status(400).send('Please provide a name, location and website');
         return;
     }
-
     try{
-        //connect to the db
+        // conncect to the db
         await client.connect();
-
-        //retrieve the university collection data
-        const colli = client.db('Web2Werkstuk').collection('Universities');
-
-        // Validation for double university
-        const isWishlist = await colli.findOne({univid: req.body.univid});
-
-        if(isWishlist){
-            res.status(400).send('Bad request: University already exists with cmtid ' + req.body.univid);
+        // retrieve the universities collection
+        const collection = client.db('BEL-universities').collection('universities');
+        // Validation for double universities
+        const uni = await collection.findOne({name: req.body.name, location: req.body.location, website: req.body.website, image: req.body.image, description: req.body.description, liked: req.body.liked});
+        if(uni){
+            res.status(400).send('University already exists');
             return;
-        } 
-        // Create the new Comments object
-        let univWishlist = {
-            univid: req.body.univid,
-            wishlist:true,
-        };
-
-        await colli.insertOne(univWishlist);
-        
-        const query = {
-            univid: req.body.univid,
         }
-
-        const university = await colli.find(query).toArray();
-        res.status(200).send(university);
-
-        //Send back successmessage
-        res.status(201).send(`Comments succesfully saved with id ${req.body.cmtid}`);
+        // Create the new university
+        let newUni = {
+            name: req.body.name,
+            location: req.body.location,
+            website: req.body.website,
+            image: req.body.image,
+            description: req.body.description,
+            liked: req.body.liked
+        }
+        // Add into the database
+        let result = await collection.insertOne(newUni);
+        // Send back the data with the response
+        res.status(201).json(newUni);
         return;
+
     }catch(error){
         console.log(error);
         res.status(500).send({
-            error: 'Something went wrong',
+            error: 'An error has occured',
             value: error
         });
-    }finally {
-        await client.close();
-    }
-});
+        }finally{
+            client.close();
+        }
+} );
 
+// DONE - Delete a university in the wishlist
 app.delete('/wishlist/:id', async (req, res) => {
-    try{
-        //connect to the db
-        await client.connect();
-
-        //retrieve the comments collection data
-        const colli = client.db('Web2Werkstuk').collection('Universities');
-
-        const query = {
-            _id: ObjectId(req.params.id)
-        };
-
-        await collection.deleteOne(query)
-        res.status(200).json({
-            succes: 'Succesfully deleted!'
-        });
-
-    }catch(error){
-        console.log(error)
-        res.status(500).send({
-            error: 'Something went wrong',
-            value: error
-        });
-    }finally {
-        await client.close();
+    // Check for id in url
+    if(!req.params.id){
+        res.status(400).send('Please provide an id');
+        return;
     }
-});
-
-app.get('/wishlist', async (req, res) => {
-    try {
+    try{
+        // conncect to the db
         await client.connect();
-        const colli = client.db('Web2Werkstuk').collection('Universities');
-        const wishlist = await colli.find({}).toArray();
-        res.status(200).send(wishlist);
-
-    } catch (error) {
+        // retrieve the universities collection
+        const collection = client.db('BEL-universities').collection('universities');
+        // Delete the university
+        let result = await collection.deleteOne({_id: ObjectId(req.params.id)});
+        // Send back the data with the response
+        res.status(200).send(result);
+        return;
+    }catch(error){
         console.log(error);
         res.status(500).send({
-            error: 'Something went wrong!',
+            error: 'An error has occured',
             value: error
         });
+        }finally{
+            client.close();
+        }
+} );
 
-    } finally {
-        await client.close();
+
+// DONE - Return all comments from the database
+app.get('/comments', async (req, res) => {
+    try{
+        // conncect to the db
+        await client.connect();
+        // retrieve the users collection
+        const collection = client.db('BEL-universities').collection('comments');
+        // Find the user
+        const comments = await collection.find().toArray();
+        // Send back the data with the response
+        res.status(200).send(comments);
     }
-});
+    catch(error){
+        console.log(error);
+        res.status(500).send({
+            error: 'An error has occured',
+            value: error
+        });
+        }finally{
+            client.close();
+        }
+} );
+
+// DONE - Return one comment from the database
+app.get('/comments/:id', async (req, res) => {
+    // Check for id in url
+    if(!req.params.id){
+        res.status(400).send('Please provide an id');
+        return;
+    }
+    try{
+        // conncect to the db
+        await client.connect();
+        // retrieve the users collection
+        const collection = client.db('BEL-universities').collection('comments');
+        // Find the user
+        const comment = await collection.findOne({_id: ObjectId(req.params.id)});
+        // Send back the data with the response
+        res.status(200).send(comment);
+    }
+    catch(error){
+        console.log(error);
+        res.status(500).send({
+            error: 'An error has occured',
+            value: error
+        });
+        }finally{
+            client.close();
+        }
+} );
+
+// DONE - Add a comment to the database
+app.post('/comments', async (req, res) => {
+    // Check for body fields
+    if(!req.body.name || !req.body.comment || !req.body.date){
+        res.status(400).send('Please provide a name, comment and date');
+        return;
+    }
+    try{
+        // conncect to the db
+        await client.connect();
+        // retrieve the users collection
+        const collection = client.db('BEL-universities').collection('comments');
+        // Add into the database
+        let result = await collection.insertOne(req.body);
+        // Send back the data with the response
+        res.status(201).json(req.body);
+        return;
+    }
+    catch(error){
+        console.log(error);
+        res.status(500).send({
+            error: 'An error has occured',
+            value: error
+        });
+        }finally{
+            client.close();
+        }
+} );
+
+// DONE - Update a comment in the database
+app.put('/comments/:id', async (req, res) => {
+    //Check for bdody fields
+    if(!req.body.name || !req.body.comment || !req.body.date){
+        res.status(400).send('Please provide a name, comment and date');
+        return;
+    }
+    // Check for id in url
+    if(!req.params.id){
+        res.status(400).send('Please provide an id');
+        return;
+    }
+    try{
+        // conncect to the db
+        await client.connect();
+        // retrieve the users collection
+        const collection = client.db('BEL-universities').collection('comments');
+        // Update the comment
+        let result = await collection.updateOne({_id: ObjectId(req.params.id)}, {$set: {name: req.body.name, comment: req.body.comment, date: req.body.date}});
+        // Send back the data with the response
+        res.status(200).send(result);
+        return;
+    }
+    catch(error){
+        console.log(error);
+        res.status(500).send({
+            error: 'An error has occured',
+            value: error
+        });
+        }finally{
+            client.close();
+        }
+} );
+
+// DONE - Delete a comment from the database
+app.delete('/comments/:id', async (req, res) => {
+    // Check for id in url
+    if(!req.params.id){
+        res.status(400).send('Please provide an id');
+        return;
+    }
+    try{
+        // conncect to the db
+        await client.connect();
+        // retrieve the users collection
+        const collection = client.db('BEL-universities').collection('comments');
+        // Delete the comment
+        let result = await collection.deleteOne({_id: ObjectId(req.params.id)});
+        // Send back the data with the response
+        res.status(200).send(result);
+        return;
+    }
+    catch(error){
+        console.log(error);
+        res.status(500).send({
+            error: 'An error has occured',
+            value: error
+        });
+        }finally{
+            client.close();
+        }
+} );
+
+// DONE - Return all users from the database
+app.get('/users', async (req, res) => {
+    try{
+        // conncect to the db
+        await client.connect();
+        // retrieve the users collection
+        const collection = client.db('BEL-universities').collection('users');
+        const user = await collection.find({}).toArray();
+        // Send back the data with the response 
+        res.status(200).send(user);
+    }
+    catch(error){
+        console.log(error);
+        res.status(500).send({
+            error: 'An error has occured',
+            value: error
+        });
+        }
+    finally{
+        client.close();
+    }
+} );
+
+// DONE - Login a user and return a JWT token
+app.post('/login', async (req, res) => {
+    if(!req.body.email || !req.body.password){
+        res.status(400).send('Please provide an email and password');
+        return;
+    }
+    try{
+        // conncect to the db
+        await client.connect();
+        // retrieve the users collection
+        const collection = client.db('BEL-universities').collection('users');
+        // Validation for double users
+        const user = await collection.findOne({email: req.body.email});
+        if(!user){
+            res.status(400).send('User does not exist');
+            return;
+        }
+        // Check the password
+        const validPassword = await bcrypt.compare(req.body.password, user.password);
+        if(!validPassword){
+            res.status(400).send('Invalid password');
+            return;
+        }
+        // Create the JWT token
+        const token = jwt.sign({_id: user._id}, 'secret', {expiresIn: '1h'});
+        const email = user.email;
+        // Send back the data with the response
+        res.status(200).json({token: token, email: email});
+        return;
+    }
+    catch(error){
+        console.log(error);
+        res.status(500).send({
+            error: 'An error has occured',
+            value: error
+        });
+        }finally{
+            client.close();
+        }
+} );
+
+// DONE - Register a user in the database with JWT AND BCRYPT
+app.post('/register', async (req, res) => {
+    if(!req.body.email || !req.body.password || !req.body.username){
+        res.status(400).send('Please provide an email, password and username');
+        return;
+    }
+    try{
+        // conncect to the db
+        await client.connect();
+        // retrieve the users collection
+        const collection = client.db('BEL-universities').collection('users');
+        // Validation for double users
+        const user = await collection.findOne({email: req.body.email});
+        if(user){
+            res.status(400).send('User already exists');
+            return;
+        }
+        // Hash the password
+        const hashedPassword = await bcrypt.hash(req.body.password, 10);
+        // Create the user
+        const newUser = {
+            email: req.body.email,
+            password: hashedPassword,
+            username: req.body.username
+        };
+        // Insert the user
+        const result = await collection.insertOne(newUser);
+        // Send back the data with the response
+        res.status(200).send(result);
+        return;
+    }
+    catch(error){
+        console.log(error);
+        res.status(500).send({
+            error: 'An error has occured',
+            value: error
+        });
+        }finally{
+            client.close();
+        }
+} );
+
+
+
+const verifyToken = async (req, res, next) => {
+    const bearerHeader = req.headers['authorization'];
+    if(typeof bearerHeader !== 'undefined'){
+        const bearer = bearerHeader.split(' ');
+        const bearerToken = bearer[1];
+        req.token = bearerToken;
+        next();
+    } else {
+        res.status(403).send('Forbidden');
+    }
+}
+
+
+
+// DONE - Verify the JWT token and return the user
+app.get('/users/me', verifyToken, async (req, res) => {
+    try{
+        // conncect to the db
+        await client.connect();
+        // retrieve the users collection
+        const collection = client.db('BEL-universities').collection('users');
+        // Find the user
+        const user = await collection.findOne({_id: req.userId});
+        // Send back the data with the response
+        res.status(200).send(user);
+    }
+    catch(error){
+        console.log(error);
+        res.status(500).send({
+            error: 'An error has occured',
+            value: error
+        });
+        }finally{
+            client.close();
+        }
+} );
+
+// DONE - Delete a user from the database
+app.delete('/users/:id', verifyToken, async (req, res) => {
+    // Check for id in url
+    if(!req.params.id){
+        res.status(400).send('Please provide an id');
+        return;
+    }
+    try{
+        // conncect to the db
+        await client.connect();
+        // retrieve the users collection
+        const collection = client.db('BEL-universities').collection('users');
+        // Delete the user
+        let result = await collection.deleteOne({_id: ObjectId(req.params.id)});
+        // Send back the data with the response
+        res.status(200).send(result);
+        return;
+    }
+    catch(error){
+        console.log(error);
+        res.status(500).send({
+            error: 'An error has occured',
+            value: error
+        });
+        }finally{
+            client.close();
+        }
+} );
+// DONE - Update a user from the database
+app.put('/users/:id', verifyToken, async (req, res) => {
+    // Check for id in url
+    if(!req.params.id){
+        res.status(400).send('Please provide an id');
+        return;
+    }
+    try{
+        // conncect to the db
+        await client.connect();
+        // retrieve the users collection
+        const collection = client.db('BEL-universities').collection('users');
+        // Update the user
+        let result = await collection.updateOne({_id: ObjectId(req.params.id)}, {$set: {name: req.body.name}});
+        // Send back the data with the response
+        res.status(200).send(result);
+        return;
+    }
+    catch(error){
+        console.log(error);
+        res.status(500).send({
+            error: 'An error has occured',
+            value: error
+        });
+        }finally{
+            client.close();
+        }
+} );
 
 app.listen(port, () => {
-    console.log(`API is running at http://localhost:${port}`);
-})
+    console.log(`Server is running on port ${port}`);
+}
+);
