@@ -253,44 +253,31 @@ app.get('/events/:id', async (req, res) => {
         }
 } );
 
-
-
-// DONE - Add a new events to the database
+// DONE - Create a new event in the database
 app.post('/events', async (req, res) => {
-    if(!req.body.name || !req.body.date || !req.body.description || !req.body.image || !req.body.location || !req.body.website || !req.body.liked){
-        res.status(400).send('Please provide a name, date, description, image, location and website');
+    //Check for bdody fields
+    if(!req.body.name || !req.body.date || !req.body.time || !req.body.location || !req.body.description || !req.body.image || !req.body.liked){
+        res.status(400).send('Please provide a name, date, time and location');
         return;
     }
     try{
         // conncect to the db
         await client.connect();
         // retrieve the events collection
-        const collection = client.db('BEL-events').collection('events');
-
+        const collection = client.db('BEL-universities').collection('events');
         // Validation for double events
-        const event = await collection.findOne({name: req.body.name, date: req.body.date, description: req.body.description, image: req.body.image, location: req.body.location, website: req.body.website, liked: req.body.liked});
+        const event = await collection.findOne({name: req.body.name, date: req.body.date, time: req.body.time, location: req.body.location, description: req.body.description, image: req.body.image, liked: req.body.liked});
         if(event){
             res.status(400).send('Event already exists');
             return;
         }
-        // Create the new event
-        let newEvent = {
-            name: req.body.name,
-            date: req.body.date,
-            description: req.body.description,
-            image: req.body.image,
-            location: req.body.location,
-            website: req.body.website,
-            liked: req.body.liked
-        }
-
-        // Add into the database
-        let result = await collection.insertOne(newEvent);
+        // Create the event
+        let newEvent = await collection.insertOne({name: req.body.name, date: req.body.date, time: req.body.time, location: req.body.location, description: req.body.description, image: req.body.image, liked: req.body.liked});
         // Send back the data with the response
-        res.status(201).json(newEvent);
+        res.status(200).send(newEvent.ops[0]);
         return;
-
-    }catch(error){
+    }
+    catch(error){
         console.log(error);
         res.status(500).send({
             error: 'An error has occured',
@@ -301,13 +288,8 @@ app.post('/events', async (req, res) => {
         }
 } );
 
-// DONE - Update a event in the database
+// DONE - Update an event in the database
 app.put('/events/:id', async (req, res) => {
-    //Check for bdody fields
-    if(!req.body.name || !req.body.date || !req.body.description || !req.body.image || !req.body.location || !req.body.website || !req.body.liked){
-        res.status(400).send('Please provide a name, date, description, image, location and website');
-        return;
-    }
     // Check for id in url
     if(!req.params.id){
         res.status(400).send('Please provide an id');
@@ -317,15 +299,15 @@ app.put('/events/:id', async (req, res) => {
         // conncect to the db
         await client.connect();
         // retrieve the events collection
-        const collection = client.db('BEL-events').collection('events');
+        const collection = client.db('BEL-universities').collection('events');
         // Validation for double events
-        const event = await collection.findOne({name: req.body.name, date: req.body.date, description: req.body.description, image: req.body.image, location: req.body.location, website: req.body.website, liked: req.body.liked});
+        const event = await collection.findOne({name: req.body.name, date: req.body.date, time: req.body.time, location: req.body.location, description: req.body.description, image: req.body.image, liked: req.body.liked});
         if(event){
             res.status(400).send('Event already exists');
             return;
         }
         // Update the event
-        let result = await collection.updateOne({_id: ObjectId(req.params.id)}, {$set: {name: req.body.name, date: req.body.date, description: req.body.description, image: req.body.image, location: req.body.location, website: req.body.website, liked: req.body.liked}});
+        let result = await collection.updateOne({_id: ObjectId(req.params.id)}, {$set: {name: req.body.name, date: req.body.date, time: req.body.time, location: req.body.location, description: req.body.description, image: req.body.image, liked: req.body.liked}});
         // Send back the data with the response
         res.status(200).send(result);
         return;
@@ -341,7 +323,7 @@ app.put('/events/:id', async (req, res) => {
         }
 } );
 
-// DONE - Delete a event from the database
+// DONE - Delete an event from the database
 app.delete('/events/:id', async (req, res) => {
     // Check for id in url
     if(!req.params.id){
@@ -352,7 +334,7 @@ app.delete('/events/:id', async (req, res) => {
         // conncect to the db
         await client.connect();
         // retrieve the events collection
-        const collection = client.db('BEL-events').collection('events');
+        const collection = client.db('BEL-universities').collection('events');
         // Delete the event
         let result = await collection.deleteOne({_id: ObjectId(req.params.id)});
         // Send back the data with the response
@@ -369,8 +351,6 @@ app.delete('/events/:id', async (req, res) => {
             client.close();
         }
 } );
-
-
 
 
 
